@@ -384,6 +384,10 @@ def _run_kt_builder_action(
     args.add("--build_java", build_java)
     args.add("--build_kotlin", build_kotlin)
 
+    # This is required for the JVM 17 or later (or perhaps earlier) to access the jdeps modules in the JVM.
+    jvm_args = ctx.actions.args()
+    jvm_args.add("--jvm_flags=--add-opens=jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED")
+
     progress_message = "%s %s { kt: %d, java: %d, srcjars: %d } for %s" % (
         mnemonic,
         ctx.label,
@@ -414,7 +418,7 @@ def _run_kt_builder_action(
             toolchains.kt.execution_requirements,
             {"worker-key-mnemonic": "KotlinCompile"},
         ),
-        arguments = [args],
+        arguments = [jvm_args, args],
         progress_message = progress_message,
         env = {
             "LC_CTYPE": "en_US.UTF-8",  # For Java source files
